@@ -1,0 +1,5 @@
+With x pointing right and y pointing down, increasing theta rotates clockwise.
+For example, R(pi/2) maps (1, 0) to (0, 1): right becomes down.
+
+With y pointing up, increasing theta rotates counterclockwise, since the same
+mapping takes right to up.

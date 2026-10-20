@@ -1,0 +1,45 @@
+BasicTransform (implemented in src/basic_transform.h)
+
+Apply scale before translation:
+  point:  (sx * px + tx, sy * py + ty)
+  vector: (sx * vx, sy * vy)
+The identity has scale (1, 1) and translation (0, 0). Vectors are unaffected
+by translation. Equality compares both components of both fields exactly.
+Scaling first lets translation specify the world position of the local origin,
+independently of scale. Translating first would also scale the translation.
+
+Rectangle geometry
+
+The rectangle is 400 by 300, centered at (400, 300), so its corners are:
+  top-left     (200, 150)
+  bottom-left  (200, 450)
+  bottom-right (600, 450)
+  top-right    (600, 150)
+
+(a) Counterclockwise as seen on the screen (y points down):
+  top-left triangle:     (200, 150), (200, 450), (600, 150)
+  bottom-right triangle: (600, 150), (200, 450), (600, 450)
+The shared diagonal joins bottom-left to top-right.
+
+(b) Store the four unique positions in the corner order listed above.
+Use indices [0, 1, 3, 3, 1, 2] to reproduce the triangles in (a).
+
+With 4-byte floats, the original uses 6 * 2 * 4 = 48 bytes.
+The indexed version uses 4 * 2 * 4 + 6 * 4 = 56 bytes.
+Thus indexing this particular quad actually costs 8 more bytes.
+
+In general, let N be the number of unique vertices, K the number of triangle
+vertex references, and B the bytes per vertex. Non-indexed storage costs K*B;
+indexed storage costs N*B + 4*K. Indexing wins when K/N > B/(B - 4).
+For 2D float positions, B = 8, so the average reuse must exceed 2; at 2 it ties.
+This quad has K/N = 6/4 = 1.5, so non-indexed storage wins.
+
+With 8-byte doubles, B = 16. The original uses 96 bytes; indexing uses
+64 + 24 = 88 bytes, saving 8 bytes. The general reuse threshold is 4/3.
+Additional per-vertex data can also make indexing worthwhile, provided all
+attributes of a shared vertex agree (e.g. position and UV coordinates).
+
+(c) Normalized texture coordinates at screen position (500, 301):
+  u = (500 - 200) / 400 = 0.75
+  v = (301 - 150) / 300 = 151/300 = 0.503333
+Hence (u, v) = (0.75, 151/300).
